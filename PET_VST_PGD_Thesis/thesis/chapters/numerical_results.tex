@@ -1,0 +1,79 @@
+\FloatBarrier
+\section{Experiments}
+\subsection{Data Preparation}
+A Shepp--Logan phantom was resized to $256\times256$ pixels and augmented with three small Gaussian hot lesions. Intensities were normalized to $[0,1]$. Independent Poisson draws with seed 20260627 used peak counts of 60, 30, and 12 to represent the 50\%, 25\%, and 10\% dose conditions, respectively.
+
+\subsection{Baseline Methods}
+Adaptive VST-PGD was compared with the unprocessed low-dose observation, Gaussian filtering, non-local means (NLM), and TV gradient descent (TV-GD). Gaussian filtering used a standard deviation of 1. NLM used $5\times5$ patches and a search distance of 6. TV-GD used $\lambda=0.08$ for 120 iterations. These methods provide representative linear, patch-based, and variational baselines.
+
+\subsection{Evaluation Metrics}
+PSNR, SSIM, RMSE, relative error (RE), and edge preservation index (EPI) were evaluated against ground truth. EPI is the cosine similarity between Sobel gradient vectors, so larger values indicate stronger gradient alignment. PSNR, SSIM, and EPI are maximized; RMSE and RE are minimized. Iteration counts are zero for non-iterative methods.
+
+\subsection{Implementation Details}
+Adaptive VST-PGD used $\lambda_1=2.0$, $\lambda_2=0.5$, $\epsilon=10^{-3}$, and at most 140 iterations. Barzilai--Borwein proposals were clipped to $[10^{-4},0.2]$, and Armijo backtracking used at most 12 trials per iteration. Runtime was measured with a monotonic wall clock. Tables and figures were generated programmatically from saved arrays and CSV files.
+
+\section{Results and Discussion}
+\subsection{Quantitative Comparison}
+\input{tables/metrics_table}
+Adaptive VST-PGD achieved the highest PSNR at every dose. At 25\% dose, it improved the low-dose input by \ProposedGainTwentyFive{} dB and exceeded NLM by \ProposedOverNLMTwentyFive{} dB. NLM achieved the highest SSIM, indicating that pixelwise fidelity and perceptual structural similarity favor different estimates. TV-GD attained high PSNR and EPI but substantially lower SSIM. Figure~\ref{fig:bars} summarizes PSNR and SSIM at 25\% dose.
+\begin{figure}[tbp]
+\centering
+\includegraphics[width=.82\textwidth]{metric_bars.pdf}
+\caption{PSNR and SSIM comparison at 25\% dose, generated from the measured results.}
+\label{fig:bars}
+\end{figure}
+
+\subsection{Visual Comparison}
+Figures~\ref{fig:comparison}--\ref{fig:zoom} compare reconstructed appearance and absolute errors at 25\% dose. The line profile in Fig.~\ref{fig:profile} provides a complementary assessment of local activity preservation through a hot lesion.
+\begin{figure}[tbp]
+\centering
+\includegraphics[width=.94\textwidth]{method_comparison.pdf}
+\caption{Ground truth and preprocessing results at 25\% dose.}
+\label{fig:comparison}
+\end{figure}
+\begin{figure}[tbp]
+\centering
+\includegraphics[width=.94\textwidth]{error_maps.pdf}
+\caption{Absolute error maps at 25\% dose, displayed on a common scale.}
+\label{fig:error}
+\end{figure}
+\begin{figure}[tbp]
+\centering
+\includegraphics[width=.94\textwidth]{zoom_in.pdf}
+\caption{Hot-lesion region used for local edge and shape assessment.}
+\label{fig:zoom}
+\end{figure}
+\begin{figure}[tbp]
+\centering
+\includegraphics[width=.84\textwidth]{line_profile.pdf}
+\caption{Horizontal activity profile through image row 102.}
+\label{fig:profile}
+\end{figure}
+
+\subsection{Convergence Analysis}
+Figure~\ref{fig:conv} reports the objective value and iterate-wise RE at 25\% dose. Spectral-step backtracking reached the stopping tolerance in \ProposedIterFifty{} and \ProposedIterTwentyFive{} iterations at 50\% and 25\% dose, respectively; the 10\% case used all \ProposedIterTen{} iterations, reflecting more difficult optimization under sparse counts.
+\begin{figure}[tbp]
+\centering
+\includegraphics[width=.84\textwidth]{convergence_curves.pdf}
+\caption{Measured Adaptive VST-PGD convergence history at 25\% dose.}
+\label{fig:conv}
+\end{figure}
+
+\subsection{Ablation Study}
+\input{tables/ablation_table}
+Removing the Anscombe transform caused the largest PSNR loss. Replacing the adaptive weight with uniform weighting reduced PSNR by \AdaptiveWeightPSNRLoss{} dB. Fixed-step PGD attained \FixedStepPSNR{} dB after \FixedStepIterations{} iterations, slightly above the early-stopped complete solver, but required \FixedStepRuntimeRatio{} times its runtime. The spectral step therefore improved practical convergence speed in this configuration rather than the best finite-budget PSNR.
+\begin{figure}[tbp]
+\centering
+\includegraphics[width=.82\textwidth]{ablation_bars.pdf}
+\caption{Ablation results at 25\% dose.}
+\label{fig:ablation}
+\end{figure}
+
+\subsection{Parameter Sensitivity Analysis}
+The grid in Fig.~\ref{fig:sensitivity} contains a broad high-PSNR region for $\lambda_1\in[1.6,2.0]$ and $\lambda_2\in[0.35,0.7]$. The best tested pair, $(\lambda_1,\lambda_2)=(\BestLambdaOne,\BestLambdaTwo)$, attained \BestSensitivityPSNR{} dB. Because this pair was selected on the evaluation phantom, an independent validation set would be required for clinical parameter selection.
+\begin{figure}[tbp]
+\centering
+\includegraphics[width=.60\textwidth]{parameter_heatmap.pdf}
+\caption{PSNR sensitivity to regularization parameters at 25\% dose.}
+\label{fig:sensitivity}
+\end{figure}

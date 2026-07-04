@@ -1,0 +1,85 @@
+\section{Methodology}
+\subsection{Low-Dose PET Noise Model}
+Let $x\in\R_+^N$ denote the activity image and let $y$ denote the measured count image. The simplified observation model is
+\begin{equation}
+y_i\sim\operatorname{Poisson}(\alpha x_i+b_i),
+\label{eq:poisson}
+\end{equation}
+where $\alpha$ represents dose or count scaling and $b_i$ represents background events. The simulation sets $b_i=0$ and uses count peaks of 60, 30, and 12 for the reported 50\%, 25\%, and 10\% dose levels.
+
+\subsection{Anscombe Variance Stabilization}
+The transformed observation is
+\begin{equation}
+z_i=2\sqrt{y_i+\frac{3}{8}},
+\label{eq:anscombe}
+\end{equation}
+whose conditional variance is approximately one outside the extreme low-count regime. After optimization, the conventional algebraic inverse is applied:
+\begin{equation}
+\widehat{x}_i=\max\!\left\{(u_i/2)^2-3/8,0\right\}/\alpha.
+\label{eq:inverse}
+\end{equation}
+
+\subsection{Adaptive First- and Second-Order Regularization}
+Forward differences $D_x,D_y$ and second differences $D_{xx},D_{xy},D_{yy}$ use periodic boundaries. A robust edge scale $s$ is defined as the 90th percentile of $|\nabla z|$, and the spatial weight is
+\begin{equation}
+w_i=\exp\left[-\min\{|\nabla z_i|/s,4\}^2\right].
+\label{eq:weight}
+\end{equation}
+The weight is close to one in flat regions, strengthening first-order suppression, while $(1-w)$ activates the second-order component near detected structures. The objective is
+\begin{align}
+E(u)=&\tfrac12\|u-z\|_2^2
++\lambda_1\sum_iw_i\sqrt{(D_xu_i)^2+(D_yu_i)^2+\epsilon^2}\nonumber\\
+&+\lambda_2\sum_i(1-w_i)
+\sqrt{(D_{xx}u_i)^2+2(D_{xy}u_i)^2+(D_{yy}u_i)^2+\epsilon^2}.
+\label{eq:objective}
+\end{align}
+Writing $q_i$ and $r_i$ for the first- and second-order square-root terms, direct differentiation gives
+\begin{align}
+\nabla E(u)=&(u-z)+\lambda_1\left[
+D_x^T\frac{wD_xu}{q}+D_y^T\frac{wD_yu}{q}\right]\nonumber\\
+&+\lambda_2\left[
+D_{xx}^T\frac{(1-w)D_{xx}u}{r}
++2D_{xy}^T\frac{(1-w)D_{xy}u}{r}
++D_{yy}^T\frac{(1-w)D_{yy}u}{r}\right].
+\label{eq:gradient}
+\end{align}
+
+\subsection{Projected Gradient Descent Optimization}
+Non-negativity is imposed through the projected update
+\begin{equation}
+u^{k+1}=\Pi_{\R_+^N}\!\left(u^k-\eta_k\nabla E(u^k)\right),
+\label{eq:pgd}
+\end{equation}
+where projection is componentwise clipping. For $s_k=u^k-u^{k-1}$ and $v_k=g^k-g^{k-1}$, the Barzilai--Borwein proposal is
+\begin{equation}
+\eta_k^{\mathrm{BB}}=\operatorname{clip}\left(
+\frac{s_k^Ts_k}{|s_k^Tv_k|+10^{-12}},10^{-4},0.2\right).
+\label{eq:bb}
+\end{equation}
+Armijo backtracking halves this proposal until sufficient decrease is obtained. With fixed $w$ and $\epsilon>0$, Eq.~\eqref{eq:objective} is a smooth convex approximation over a closed convex feasible set. Under standard assumptions, backtracking ensures descent and accumulation points satisfy the projected first-order stationarity condition \citep{bertsekas1999nonlinear}. Small values of $\epsilon$ can nevertheless cause ill-conditioning, and the algebraic inverse remains biased in the extreme low-count regime.
+
+\subsection{Proposed Adaptive VST-PGD Algorithm}
+The complete optimization procedure is summarized in Algorithm~\ref{alg:method}. Starting from the variance-stabilized low-dose PET image, the proposed method iteratively minimizes the adaptive regularized objective using projected gradient descent with an Armijo-type step-size rule. The non-negativity projection guarantees physically meaningful PET intensities, while the inverse Anscombe transform maps the optimized image back to the original count domain.
+
+\begin{algorithm}[H]
+\caption{Adaptive VST-PGD for Low-Dose PET Image Preprocessing}
+\label{alg:method}
+\begin{algorithmic}[1]
+\REQUIRE Low-dose image $y$, count scale $\alpha$, regularization parameters $\lambda_1,\lambda_2$, tolerance $\tau$
+\STATE $z\gets2\sqrt{\alpha y+3/8}$; compute $w$ from Eq.~\eqref{eq:weight}; initialize $u^0\gets z$
+\FOR{$k=0,1,\ldots,K-1$}
+  \STATE Evaluate $E(u^k)$ and $g^k$ using Eqs.~\eqref{eq:objective}--\eqref{eq:gradient}
+  \STATE Propose $\eta_k$ from Eq.~\eqref{eq:bb}, using $0.08$ at the initial iteration
+  \REPEAT
+    \STATE $u^{k+1}\gets\max(u^k-\eta_kg^k,0)$
+    \STATE If the Armijo condition fails, set $\eta_k\gets\eta_k/2$
+  \UNTIL{the decrease condition holds or 12 trials have been evaluated}
+  \IF{$\|u^{k+1}-u^k\|_2/(\|u^k\|_2+10^{-12})<\tau$}
+    \STATE \textbf{break}
+  \ENDIF
+\ENDFOR
+\STATE \RETURN inverse transform from Eq.~\eqref{eq:inverse}
+\end{algorithmic}
+\end{algorithm}
+
+The algorithm terminates when the relative change between two consecutive iterates falls below the tolerance threshold or when the maximum number of iterations is reached. This design preserves the interpretability of gradient-based optimization while improving robustness under low-count PET noise.

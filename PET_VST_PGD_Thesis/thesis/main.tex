@@ -1,0 +1,85 @@
+\documentclass[12pt,a4paper]{article}
+\usepackage[a4paper,top=2.54cm,bottom=2.54cm,left=3.17cm,right=3.17cm]{geometry}
+\usepackage{fontspec}
+\usepackage{xeCJK}
+\usepackage{setspace}
+\usepackage{fancyhdr}
+\usepackage{amsmath,amssymb,bm}
+\usepackage{graphicx,booktabs}
+\usepackage{float}
+\usepackage{placeins}
+\usepackage{algorithm,algorithmic}
+\usepackage{caption,subcaption}
+\usepackage[super,square,numbers,sort&compress]{natbib}
+\usepackage{xcolor,hyperref}
+
+% Preferred university fonts: Times New Roman for English and numerals,
+% Arial for sans serif text, Courier New for monospaced text, and SimSun
+% (Songti) for any CJK glyphs. TeX Gyre and Fandol fonts are safe fallbacks.
+\IfFontExistsTF{Times New Roman}
+  {\setmainfont{Times New Roman}}
+  {\setmainfont{TeX Gyre Termes}}
+\IfFontExistsTF{Arial}
+  {\setsansfont{Arial}}
+  {\setsansfont{TeX Gyre Heros}}
+\IfFontExistsTF{Courier New}
+  {\setmonofont{Courier New}}
+  {\setmonofont{TeX Gyre Cursor}}
+\IfFontExistsTF{SimSun}
+  {\setCJKmainfont{SimSun}}
+  {\setCJKmainfont{FandolSong-Regular}}
+
+\graphicspath{{figures/}}
+\captionsetup{
+  font={small,stretch=1.5},
+  labelfont=bf
+}
+\hypersetup{
+  pdftitle={Adaptive Variance-Stabilized Projected Gradient Descent for Low-Dose PET Image Preprocessing},
+  pdfauthor={Undergraduate Candidate},
+  colorlinks=true,
+  linkcolor=black,
+  citecolor=blue,
+  urlcolor=blue
+}
+\onehalfspacing
+\pagestyle{fancy}
+\fancyhf{}
+\fancyfoot[C]{\fontsize{7.5pt}{9pt}\selectfont\thepage}
+\renewcommand{\headrulewidth}{0pt}
+\renewcommand{\footrulewidth}{0pt}
+\fancypagestyle{plain}{
+  \fancyhf{}
+  \fancyfoot[C]{\fontsize{7.5pt}{9pt}\selectfont\thepage}
+  \renewcommand{\headrulewidth}{0pt}
+  \renewcommand{\footrulewidth}{0pt}
+}
+\newcommand{\R}{\mathbb{R}}
+\renewcommand{\refname}{References}
+\input{tables/results_macros}
+
+\title{\textbf{Adaptive Variance-Stabilized Projected Gradient Descent\\
+for Low-Dose PET Image Preprocessing}}
+\author{Undergraduate Candidate\\
+Biomedical and Computational Imaging Programme}
+\date{}
+
+\begin{document}
+\pagenumbering{arabic}
+\maketitle
+\begin{abstract}
+\normalsize
+\input{chapters/abstract_en}
+\end{abstract}
+\noindent\textbf{Keywords:} Low-dose PET, image preprocessing, Poisson noise,
+Anscombe transform, projected gradient descent, adaptive regularization
+\vspace{1em}
+
+\input{chapters/introduction}
+\input{chapters/literature_review}
+\input{chapters/methodology}
+\input{chapters/numerical_results}
+\input{chapters/conclusion}
+\bibliographystyle{unsrtnat}
+\bibliography{references}
+\end{document}
