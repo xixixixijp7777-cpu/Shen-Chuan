@@ -88,11 +88,11 @@ function resizeCanvas() {
 }
 
 function addHeart(x, y) {
-  particles.push({ type: "heart", x, y, vx: (Math.random() - .5) * .5, vy: -0.7 - Math.random(), life: 1, size: 7 + Math.random() * 6, color: Math.random() > .5 ? "#dd7ea5" : "#a195d2" });
+  particles.push({ type: "heart", x, y, vx: (Math.random() - .5) * .5, vy: -0.7 - Math.random(), life: 1, size: 7 + Math.random() * 6, color: Math.random() > .5 ? "#637fd2" : "#8b7bd8" });
 }
 
 function launchFireworks() {
-  const colors = ["#e889ae", "#9e91d2", "#79a9d2", "#e8bd70"];
+  const colors = ["#6687d8", "#8b7cdb", "#62a8d5", "#e8bd70"];
   [0.3, 0.5, 0.7].forEach((position, burstIndex) => {
     setTimeout(() => {
       const centerX = width * position;
