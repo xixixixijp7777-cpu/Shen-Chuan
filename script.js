@@ -36,38 +36,6 @@ document.addEventListener("keydown", (event) => {
   if (event.key === "Escape" && modal.classList.contains("open")) closeModal();
 });
 
-// Play music only after the visitor chooses to start it.
-const music = document.querySelector("#bgMusic");
-const musicButton = document.querySelector("#musicButton");
-const musicText = musicButton.querySelector(".music-text");
-const toast = document.querySelector("#toast");
-let toastTimer;
-
-function showToast(message) {
-  toast.textContent = message;
-  toast.classList.add("show");
-  clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => toast.classList.remove("show"), 2800);
-}
-
-musicButton.addEventListener("click", async () => {
-  if (!music.paused) {
-    music.pause();
-    musicButton.classList.remove("playing");
-    musicText.textContent = "播放音乐";
-    musicButton.setAttribute("aria-label", "播放背景音乐");
-    return;
-  }
-  try {
-    await music.play();
-    musicButton.classList.add("playing");
-    musicText.textContent = "暂停音乐";
-    musicButton.setAttribute("aria-label", "暂停背景音乐");
-  } catch (error) {
-    showToast("请先将音乐文件放到 assets/music.mp3");
-  }
-});
-
 // Draw lightweight heart trails and a small firework celebration.
 const canvas = document.querySelector("#effectsCanvas");
 const context = canvas.getContext("2d");
